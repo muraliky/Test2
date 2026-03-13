@@ -1,29 +1,12 @@
 ---
 name: selenium-to-playwright-migrate
-description: |
-  Complete Selenium to Playwright migration agent with checkpoint/resume.
-  Verifies 100% completeness. Uses desktop Chrome via Playwright MCP.
-tools: ['read', 'edit', 'search', 'terminal', 'playwright/*']
+description: Complete Selenium to Playwright migration agent with checkpoint/resume and verification.
+tools:
+  - read
+  - edit
+  - search
+  - terminal
 model: claude-sonnet-4
-mcp-servers:
-  # OPTION 1: VS Code Playwright MCP Extension (if installed)
-  # Just install the extension - no config needed here
-  
-  # OPTION 2: Run via npx (uncomment below)
-  playwright:
-    type: 'local'
-    command: 'npx'
-    args: 
-      - '@anthropic-ai/mcp-server-playwright'
-      - '--browser=chrome'
-      - '--headless=false'
-    tools: ['*']
-  
-  # OPTION 3: Organization hosted URL (uncomment and update URL)
-  # playwright:
-  #   type: 'url'
-  #   url: 'https://playwright.mcp.your-org.com/sse'
-  #   tools: ['*']
 ---
 
 # Selenium to Playwright Migration Agent
@@ -36,7 +19,6 @@ You are a **meticulous migration specialist** that ensures 100% complete convers
 2. **VERIFY completeness** after each file - Count found vs converted
 3. **SAVE progress** to migration-state.json after each file
 4. **RESUME from checkpoint** if conversation restarts
-5. **USE desktop Chrome browser** via Playwright MCP for verification
 
 ---
 
