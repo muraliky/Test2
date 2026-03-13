@@ -80,6 +80,9 @@ echo.
 echo ═══════════════════════════════════════════════════════════════
 echo   Do you want to copy your Selenium Java source files now?
 echo   (You can skip this and do it manually later)
+echo.
+echo   NOTE: All subfolders and files will be copied recursively,
+echo         preserving your module/folder structure.
 echo ═══════════════════════════════════════════════════════════════
 echo.
 
@@ -91,10 +94,27 @@ if /i "!COPY_FILES!"=="Y" (
     echo   Enter the FULL PATH to your Selenium project folders.
     echo   Leave blank and press Enter to skip any folder.
     echo.
-    echo   Example paths:
-    echo     C:\Projects\selenium-tests\src\main\java\pages
-    echo     C:\Projects\selenium-tests\src\main\java\steps  
-    echo     C:\Projects\selenium-tests\src\test\resources\features
+    echo   All subfolders will be copied with their structure:
+    echo.
+    echo   Example: If your pages folder has:
+    echo     C:\selenium\pages\
+    echo       ├── accounts\
+    echo       │   ├── AccountListPage.java
+    echo       │   └── AccountDetailsPage.java
+    echo       ├── trading\
+    echo       │   └── TradePage.java
+    echo       └── common\
+    echo           └── BasePage.java
+    echo.
+    echo   It will copy to:
+    echo     _source-java\pages\
+    echo       ├── accounts\
+    echo       │   ├── AccountListPage.java
+    echo       │   └── AccountDetailsPage.java
+    echo       ├── trading\
+    echo       │   └── TradePage.java
+    echo       └── common\
+    echo           └── BasePage.java
     echo ───────────────────────────────────────────────────────────────
     echo.
     
@@ -106,11 +126,16 @@ if /i "!COPY_FILES!"=="Y" (
     
     if defined PAGES_PATH (
         if exist "!PAGES_PATH!" (
-            echo       Copying pages...
-            xcopy /E /I /Y "!PAGES_PATH!" "_source-java\pages\" >nul 2>nul
-            for /f %%a in ('dir /b "_source-java\pages\*.java" 2^>nul ^| find /c /v ""') do (
-                echo       OK Copied %%a page files
-            )
+            echo       Copying pages with folder structure...
+            xcopy /E /I /Y /Q "!PAGES_PATH!" "_source-java\pages\" >nul 2>nul
+            
+            REM Count files and folders
+            set FILE_COUNT=0
+            set FOLDER_COUNT=0
+            for /f %%a in ('dir /b /s "_source-java\pages\*.java" 2^>nul ^| find /c /v ""') do set FILE_COUNT=%%a
+            for /f %%a in ('dir /ad /b /s "_source-java\pages" 2^>nul ^| find /c /v ""') do set FOLDER_COUNT=%%a
+            
+            echo       OK Copied !FILE_COUNT! Java files in !FOLDER_COUNT! folders
         ) else (
             echo       X Path not found: !PAGES_PATH!
         )
@@ -127,11 +152,16 @@ if /i "!COPY_FILES!"=="Y" (
     
     if defined STEPS_PATH (
         if exist "!STEPS_PATH!" (
-            echo       Copying steps...
-            xcopy /E /I /Y "!STEPS_PATH!" "_source-java\steps\" >nul 2>nul
-            for /f %%a in ('dir /b "_source-java\steps\*.java" 2^>nul ^| find /c /v ""') do (
-                echo       OK Copied %%a step files
-            )
+            echo       Copying steps with folder structure...
+            xcopy /E /I /Y /Q "!STEPS_PATH!" "_source-java\steps\" >nul 2>nul
+            
+            REM Count files and folders
+            set FILE_COUNT=0
+            set FOLDER_COUNT=0
+            for /f %%a in ('dir /b /s "_source-java\steps\*.java" 2^>nul ^| find /c /v ""') do set FILE_COUNT=%%a
+            for /f %%a in ('dir /ad /b /s "_source-java\steps" 2^>nul ^| find /c /v ""') do set FOLDER_COUNT=%%a
+            
+            echo       OK Copied !FILE_COUNT! Java files in !FOLDER_COUNT! folders
         ) else (
             echo       X Path not found: !STEPS_PATH!
         )
@@ -148,11 +178,16 @@ if /i "!COPY_FILES!"=="Y" (
     
     if defined FEATURES_PATH (
         if exist "!FEATURES_PATH!" (
-            echo       Copying features...
-            xcopy /E /I /Y "!FEATURES_PATH!" "_source-java\features\" >nul 2>nul
-            for /f %%a in ('dir /b "_source-java\features\*.feature" 2^>nul ^| find /c /v ""') do (
-                echo       OK Copied %%a feature files
-            )
+            echo       Copying features with folder structure...
+            xcopy /E /I /Y /Q "!FEATURES_PATH!" "_source-java\features\" >nul 2>nul
+            
+            REM Count files and folders
+            set FILE_COUNT=0
+            set FOLDER_COUNT=0
+            for /f %%a in ('dir /b /s "_source-java\features\*.feature" 2^>nul ^| find /c /v ""') do set FILE_COUNT=%%a
+            for /f %%a in ('dir /ad /b /s "_source-java\features" 2^>nul ^| find /c /v ""') do set FOLDER_COUNT=%%a
+            
+            echo       OK Copied !FILE_COUNT! feature files in !FOLDER_COUNT! folders
         ) else (
             echo       X Path not found: !FEATURES_PATH!
         )
@@ -161,32 +196,65 @@ if /i "!COPY_FILES!"=="Y" (
     )
     
     REM ─────────────────────────────────────────────────────────────
-    REM Show summary
+    REM Show summary with folder structure
     REM ─────────────────────────────────────────────────────────────
     echo.
     echo ───────────────────────────────────────────────────────────────
     echo   COPY SUMMARY
     echo ───────────────────────────────────────────────────────────────
     
-    set PAGE_COUNT=0
-    set STEP_COUNT=0
-    set FEATURE_COUNT=0
+    set PAGE_FILES=0
+    set PAGE_FOLDERS=0
+    set STEP_FILES=0
+    set STEP_FOLDERS=0
+    set FEATURE_FILES=0
+    set FEATURE_FOLDERS=0
     
-    for /f %%a in ('dir /b /s "_source-java\pages\*.java" 2^>nul ^| find /c /v ""') do set PAGE_COUNT=%%a
-    for /f %%a in ('dir /b /s "_source-java\steps\*.java" 2^>nul ^| find /c /v ""') do set STEP_COUNT=%%a
-    for /f %%a in ('dir /b /s "_source-java\features\*.feature" 2^>nul ^| find /c /v ""') do set FEATURE_COUNT=%%a
+    for /f %%a in ('dir /b /s "_source-java\pages\*.java" 2^>nul ^| find /c /v ""') do set PAGE_FILES=%%a
+    for /f %%a in ('dir /ad /b /s "_source-java\pages" 2^>nul ^| find /c /v ""') do set PAGE_FOLDERS=%%a
+    for /f %%a in ('dir /b /s "_source-java\steps\*.java" 2^>nul ^| find /c /v ""') do set STEP_FILES=%%a
+    for /f %%a in ('dir /ad /b /s "_source-java\steps" 2^>nul ^| find /c /v ""') do set STEP_FOLDERS=%%a
+    for /f %%a in ('dir /b /s "_source-java\features\*.feature" 2^>nul ^| find /c /v ""') do set FEATURE_FILES=%%a
+    for /f %%a in ('dir /ad /b /s "_source-java\features" 2^>nul ^| find /c /v ""') do set FEATURE_FOLDERS=%%a
     
-    echo   Pages:    !PAGE_COUNT! Java files
-    echo   Steps:    !STEP_COUNT! Java files
-    echo   Features: !FEATURE_COUNT! feature files
-    echo   ─────────────────────────────────
-    set /a TOTAL=!PAGE_COUNT!+!STEP_COUNT!+!FEATURE_COUNT!
-    echo   Total:    !TOTAL! files
+    echo.
+    echo   Pages:    !PAGE_FILES! Java files in !PAGE_FOLDERS! folders
+    echo   Steps:    !STEP_FILES! Java files in !STEP_FOLDERS! folders
+    echo   Features: !FEATURE_FILES! feature files in !FEATURE_FOLDERS! folders
+    echo   ─────────────────────────────────────────────────────────
+    set /a TOTAL_FILES=!PAGE_FILES!+!STEP_FILES!+!FEATURE_FILES!
+    set /a TOTAL_FOLDERS=!PAGE_FOLDERS!+!STEP_FOLDERS!+!FEATURE_FOLDERS!
+    echo   Total:    !TOTAL_FILES! files in !TOTAL_FOLDERS! folders
+    echo.
+    
+    REM Show folder structure preview
+    echo   FOLDER STRUCTURE PREVIEW:
+    echo   ─────────────────────────────────────────────────────────
+    echo.
+    echo   _source-java\
+    if exist "_source-java\pages" (
+        echo     pages\
+        for /d %%d in ("_source-java\pages\*") do (
+            echo       %%~nxd\
+        )
+    )
+    if exist "_source-java\steps" (
+        echo     steps\
+        for /d %%d in ("_source-java\steps\*") do (
+            echo       %%~nxd\
+        )
+    )
+    if exist "_source-java\features" (
+        echo     features\
+        for /d %%d in ("_source-java\features\*") do (
+            echo       %%~nxd\
+        )
+    )
     echo.
     
 ) else (
     echo.
-    echo       Skipped. To copy files manually later, run:
+    echo       Skipped. To copy files manually later (with folder structure):
     echo.
     echo       xcopy /E /I "C:\path\to\pages" "_source-java\pages\"
     echo       xcopy /E /I "C:\path\to\steps" "_source-java\steps\"

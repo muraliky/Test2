@@ -73,6 +73,9 @@ echo ""
 echo "═══════════════════════════════════════════════════════════════"
 echo "  Do you want to copy your Selenium Java source files now?"
 echo "  (You can skip this and do it manually later)"
+echo ""
+echo "  NOTE: All subfolders and files will be copied recursively,"
+echo "        preserving your module/folder structure."
 echo "═══════════════════════════════════════════════════════════════"
 echo ""
 
@@ -84,10 +87,27 @@ if [[ "$COPY_FILES" =~ ^[Yy]$ ]]; then
     echo "  Enter the FULL PATH to your Selenium project folders."
     echo "  Leave blank and press Enter to skip any folder."
     echo ""
-    echo "  Example paths:"
-    echo "    /Users/you/projects/selenium-tests/src/main/java/pages"
-    echo "    /Users/you/projects/selenium-tests/src/main/java/steps"
-    echo "    /Users/you/projects/selenium-tests/src/test/resources/features"
+    echo "  All subfolders will be copied with their structure:"
+    echo ""
+    echo "  Example: If your pages folder has:"
+    echo "    /projects/selenium/pages/"
+    echo "      ├── accounts/"
+    echo "      │   ├── AccountListPage.java"
+    echo "      │   └── AccountDetailsPage.java"
+    echo "      ├── trading/"
+    echo "      │   └── TradePage.java"
+    echo "      └── common/"
+    echo "          └── BasePage.java"
+    echo ""
+    echo "  It will copy to:"
+    echo "    _source-java/pages/"
+    echo "      ├── accounts/"
+    echo "      │   ├── AccountListPage.java"
+    echo "      │   └── AccountDetailsPage.java"
+    echo "      ├── trading/"
+    echo "      │   └── TradePage.java"
+    echo "      └── common/"
+    echo "          └── BasePage.java"
     echo "───────────────────────────────────────────────────────────────"
     echo ""
     
@@ -98,10 +118,15 @@ if [[ "$COPY_FILES" =~ ^[Yy]$ ]]; then
     
     if [ -n "$PAGES_PATH" ]; then
         if [ -d "$PAGES_PATH" ]; then
-            echo "      Copying pages..."
-            cp -r "$PAGES_PATH"/* _source-java/pages/ 2>/dev/null
-            PAGE_COUNT=$(find _source-java/pages -name "*.java" 2>/dev/null | wc -l | tr -d ' ')
-            echo "      ✅ Copied $PAGE_COUNT page files"
+            echo "      Copying pages with folder structure..."
+            cp -R "$PAGES_PATH"/* _source-java/pages/ 2>/dev/null
+            
+            # Count files and folders
+            FILE_COUNT=$(find _source-java/pages -name "*.java" 2>/dev/null | wc -l | tr -d ' ')
+            FOLDER_COUNT=$(find _source-java/pages -type d 2>/dev/null | wc -l | tr -d ' ')
+            FOLDER_COUNT=$((FOLDER_COUNT - 1))  # Exclude root folder
+            
+            echo "      ✅ Copied $FILE_COUNT Java files in $FOLDER_COUNT folders"
         else
             echo "      ❌ Path not found: $PAGES_PATH"
         fi
@@ -117,10 +142,15 @@ if [[ "$COPY_FILES" =~ ^[Yy]$ ]]; then
     
     if [ -n "$STEPS_PATH" ]; then
         if [ -d "$STEPS_PATH" ]; then
-            echo "      Copying steps..."
-            cp -r "$STEPS_PATH"/* _source-java/steps/ 2>/dev/null
-            STEP_COUNT=$(find _source-java/steps -name "*.java" 2>/dev/null | wc -l | tr -d ' ')
-            echo "      ✅ Copied $STEP_COUNT step files"
+            echo "      Copying steps with folder structure..."
+            cp -R "$STEPS_PATH"/* _source-java/steps/ 2>/dev/null
+            
+            # Count files and folders
+            FILE_COUNT=$(find _source-java/steps -name "*.java" 2>/dev/null | wc -l | tr -d ' ')
+            FOLDER_COUNT=$(find _source-java/steps -type d 2>/dev/null | wc -l | tr -d ' ')
+            FOLDER_COUNT=$((FOLDER_COUNT - 1))
+            
+            echo "      ✅ Copied $FILE_COUNT Java files in $FOLDER_COUNT folders"
         else
             echo "      ❌ Path not found: $STEPS_PATH"
         fi
@@ -136,10 +166,15 @@ if [[ "$COPY_FILES" =~ ^[Yy]$ ]]; then
     
     if [ -n "$FEATURES_PATH" ]; then
         if [ -d "$FEATURES_PATH" ]; then
-            echo "      Copying features..."
-            cp -r "$FEATURES_PATH"/* _source-java/features/ 2>/dev/null
-            FEATURE_COUNT=$(find _source-java/features -name "*.feature" 2>/dev/null | wc -l | tr -d ' ')
-            echo "      ✅ Copied $FEATURE_COUNT feature files"
+            echo "      Copying features with folder structure..."
+            cp -R "$FEATURES_PATH"/* _source-java/features/ 2>/dev/null
+            
+            # Count files and folders
+            FILE_COUNT=$(find _source-java/features -name "*.feature" 2>/dev/null | wc -l | tr -d ' ')
+            FOLDER_COUNT=$(find _source-java/features -type d 2>/dev/null | wc -l | tr -d ' ')
+            FOLDER_COUNT=$((FOLDER_COUNT - 1))
+            
+            echo "      ✅ Copied $FILE_COUNT feature files in $FOLDER_COUNT folders"
         else
             echo "      ❌ Path not found: $FEATURES_PATH"
         fi
@@ -148,32 +183,76 @@ if [[ "$COPY_FILES" =~ ^[Yy]$ ]]; then
     fi
     
     # ─────────────────────────────────────────────────────────────
-    # Show summary
+    # Show summary with folder structure
     # ─────────────────────────────────────────────────────────────
     echo ""
     echo "───────────────────────────────────────────────────────────────"
     echo "  COPY SUMMARY"
     echo "───────────────────────────────────────────────────────────────"
     
-    PAGE_COUNT=$(find _source-java/pages -name "*.java" 2>/dev/null | wc -l | tr -d ' ')
-    STEP_COUNT=$(find _source-java/steps -name "*.java" 2>/dev/null | wc -l | tr -d ' ')
-    FEATURE_COUNT=$(find _source-java/features -name "*.feature" 2>/dev/null | wc -l | tr -d ' ')
-    TOTAL=$((PAGE_COUNT + STEP_COUNT + FEATURE_COUNT))
+    PAGE_FILES=$(find _source-java/pages -name "*.java" 2>/dev/null | wc -l | tr -d ' ')
+    PAGE_FOLDERS=$(find _source-java/pages -type d 2>/dev/null | wc -l | tr -d ' ')
+    PAGE_FOLDERS=$((PAGE_FOLDERS - 1))
     
-    echo "  Pages:    $PAGE_COUNT Java files"
-    echo "  Steps:    $STEP_COUNT Java files"
-    echo "  Features: $FEATURE_COUNT feature files"
-    echo "  ─────────────────────────────────"
-    echo "  Total:    $TOTAL files"
+    STEP_FILES=$(find _source-java/steps -name "*.java" 2>/dev/null | wc -l | tr -d ' ')
+    STEP_FOLDERS=$(find _source-java/steps -type d 2>/dev/null | wc -l | tr -d ' ')
+    STEP_FOLDERS=$((STEP_FOLDERS - 1))
+    
+    FEATURE_FILES=$(find _source-java/features -name "*.feature" 2>/dev/null | wc -l | tr -d ' ')
+    FEATURE_FOLDERS=$(find _source-java/features -type d 2>/dev/null | wc -l | tr -d ' ')
+    FEATURE_FOLDERS=$((FEATURE_FOLDERS - 1))
+    
+    echo ""
+    echo "  Pages:    $PAGE_FILES Java files in $PAGE_FOLDERS folders"
+    echo "  Steps:    $STEP_FILES Java files in $STEP_FOLDERS folders"
+    echo "  Features: $FEATURE_FILES feature files in $FEATURE_FOLDERS folders"
+    echo "  ─────────────────────────────────────────────────────────"
+    TOTAL_FILES=$((PAGE_FILES + STEP_FILES + FEATURE_FILES))
+    TOTAL_FOLDERS=$((PAGE_FOLDERS + STEP_FOLDERS + FEATURE_FOLDERS))
+    echo "  Total:    $TOTAL_FILES files in $TOTAL_FOLDERS folders"
+    echo ""
+    
+    # Show folder structure preview
+    echo "  FOLDER STRUCTURE PREVIEW:"
+    echo "  ─────────────────────────────────────────────────────────"
+    echo ""
+    echo "  _source-java/"
+    
+    if [ -d "_source-java/pages" ]; then
+        echo "    pages/"
+        for dir in _source-java/pages/*/; do
+            if [ -d "$dir" ]; then
+                echo "      $(basename "$dir")/"
+            fi
+        done
+    fi
+    
+    if [ -d "_source-java/steps" ]; then
+        echo "    steps/"
+        for dir in _source-java/steps/*/; do
+            if [ -d "$dir" ]; then
+                echo "      $(basename "$dir")/"
+            fi
+        done
+    fi
+    
+    if [ -d "_source-java/features" ]; then
+        echo "    features/"
+        for dir in _source-java/features/*/; do
+            if [ -d "$dir" ]; then
+                echo "      $(basename "$dir")/"
+            fi
+        done
+    fi
     echo ""
     
 else
     echo ""
-    echo "      Skipped. To copy files manually later, run:"
+    echo "      Skipped. To copy files manually later (with folder structure):"
     echo ""
-    echo "      cp -r /path/to/pages/* _source-java/pages/"
-    echo "      cp -r /path/to/steps/* _source-java/steps/"
-    echo "      cp -r /path/to/features/* _source-java/features/"
+    echo "      cp -R /path/to/pages/* _source-java/pages/"
+    echo "      cp -R /path/to/steps/* _source-java/steps/"
+    echo "      cp -R /path/to/features/* _source-java/features/"
     echo ""
 fi
 
