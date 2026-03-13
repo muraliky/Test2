@@ -1,0 +1,25 @@
+{
+  "name": "selenium-playwright-migration-toolkit",
+  "version": "4.0.0",
+  "description": "Selenium to Playwright migration with Copilot agents and desktop browser MCP",
+  "scripts": {
+    "login": "node scripts/secure-login.js",
+    "generate-creds": "node scripts/secure-login.js --generate",
+    "check-session": "node scripts/secure-login.js --check",
+    "force-login": "node scripts/secure-login.js --force",
+    "test": "npx playwright test",
+    "test:headed": "npx playwright test --headed",
+    "test:debug": "npx playwright test --debug"
+  },
+  "dependencies": {
+    "playwright": "^1.40.0",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.40.0",
+    "playwright-bdd": "^6.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
