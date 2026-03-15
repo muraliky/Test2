@@ -30,31 +30,76 @@ const SESSION_HOURS = parseInt(process.env.AUTH_TIMEOUT_HOURS || '24');
 // ═══════════════════════════════════════════════════════════════
 
 function encryptWithKey(text, encryptKey) {
-  if (!encryptKey || !text) return text;
+  if (!encryptKey || !text) {
+    console.log('  ⚠️  Missing text or key for encryption');
+    return text;
+  }
+  
   try {
-    const iv = crypto.randomBytes(16);
+    // Create a 32-byte key from the password using scrypt
     const key = crypto.scryptSync(encryptKey, 'salt', 32);
-    const cipher = crypto.createCipheriv('aes-256-cbc', iv, key);
+    
+    // Generate a random 16-byte IV
+    const iv = crypto.randomBytes(16);
+    
+    // Create cipher with key and IV
+    const cipher = crypto.createCipheriv('aes-256-cbc', key, iv);
+    
+    // Encrypt the text
     let encrypted = cipher.update(text, 'utf8', 'hex');
     encrypted += cipher.final('hex');
+    
+    // Return IV + encrypted text (both in hex)
     return iv.toString('hex') + ':' + encrypted;
+    
   } catch (err) {
-    console.error('Encryption error:', err.message);
+    console.log('  ❌ Encryption error:', err.message);
     return text;
   }
 }
 
 function decryptWithKey(text, encryptKey) {
-  if (!encryptKey || !text || !text.includes(':')) return text;
+  if (!encryptKey || !text) {
+    return text;
+  }
+  
+  // Check if it's in encrypted format (iv:encrypted)
+  if (!text.includes(':')) {
+    return text; // Not encrypted, return as-is
+  }
+  
   try {
-    const [ivHex, encrypted] = text.split(':');
+    const parts = text.split(':');
+    if (parts.length !== 2) {
+      return text; // Invalid format
+    }
+    
+    const ivHex = parts[0];
+    const encryptedHex = parts[1];
+    
+    // Convert IV from hex to Buffer
     const iv = Buffer.from(ivHex, 'hex');
+    
+    // Check IV length (must be 16 bytes)
+    if (iv.length !== 16) {
+      console.log('  ⚠️  Invalid IV length, treating as plain text');
+      return text;
+    }
+    
+    // Create key from password
     const key = crypto.scryptSync(encryptKey, 'salt', 32);
-    const decipher = crypto.createDecipheriv('aes-256-cbc', iv, key);
-    let decrypted = decipher.update(encrypted, 'hex', 'utf8');
+    
+    // Create decipher
+    const decipher = crypto.createDecipheriv('aes-256-cbc', key, iv);
+    
+    // Decrypt
+    let decrypted = decipher.update(encryptedHex, 'hex', 'utf8');
     decrypted += decipher.final('utf8');
+    
     return decrypted;
+    
   } catch (err) {
+    console.log('  ⚠️  Decryption failed, using value as-is');
     return text;
   }
 }
@@ -102,7 +147,7 @@ async function generateCreds() {
   // Get inputs
   const encryptKey = await ask('  Encryption key (make it strong): ');
   
-  if (!encryptKey || encryptKey.length < 4) {
+  if (!encryptKey || encryptKey.trim().length < 4) {
     console.log('');
     console.log('  ❌ Encryption key is too short. Use at least 4 characters.');
     console.log('');
@@ -123,20 +168,31 @@ async function generateCreds() {
   }
 
   // Encrypt credentials using the key user just entered
-  const encryptedUsername = encryptWithKey(username, encryptKey);
-  const encryptedPassword = encryptWithKey(password, encryptKey);
+  console.log('');
+  console.log('  🔐 Encrypting credentials...');
+  
+  const encryptedUsername = encryptWithKey(username.trim(), encryptKey.trim());
+  const encryptedPassword = encryptWithKey(password.trim(), encryptKey.trim());
 
+  // Verify encryption worked
+  if (!encryptedUsername.includes(':') || !encryptedPassword.includes(':')) {
+    console.log('');
+    console.log('  ❌ Encryption failed. Please try again.');
+    console.log('');
+    rl.close();
+    return;
+  }
+
+  console.log('  ✅ Credentials encrypted successfully!');
   console.log('');
   console.log('═══════════════════════════════════════════════════════════════');
-  console.log('              ✅ CREDENTIALS ENCRYPTED');
+  console.log('              COPY TO YOUR .env FILE');
   console.log('═══════════════════════════════════════════════════════════════');
-  console.log('');
-  console.log('  Copy the following lines to your .env file:');
   console.log('');
   console.log('───────────────────────────────────────────────────────────────');
   console.log('');
-  console.log(`APP_LOGIN_URL=${loginUrl}`);
-  console.log(`APP_ENCRYPT_KEY=${encryptKey}`);
+  console.log(`APP_LOGIN_URL=${loginUrl.trim()}`);
+  console.log(`APP_ENCRYPT_KEY=${encryptKey.trim()}`);
   console.log(`APP_USERNAME=${encryptedUsername}`);
   console.log(`APP_PASSWORD=${encryptedPassword}`);
   console.log('AUTH_FILE=./auth/auth.json');
